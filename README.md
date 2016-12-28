@@ -99,7 +99,7 @@ The following methods are used to send messages to other peers:
 ## Demonstration and Tests 
 A demo python script can be found in [demo.py](demo.py). 
 
-Tests are written using Pytest and can be found in the file [test_peer.py](testpeer.py) 
+Tests are written using Pytest and can be found in the file [test_peer.py](test_peer.py) 
 
 ## Future Work/Task List
 Chat Peer:
