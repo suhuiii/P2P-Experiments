@@ -4,16 +4,21 @@ import threading, sys, time, json
 from peerconnection import PeerConnection
 
 class Peer(object):
-	def __init__(self, host, port, myid, debug = False, autostart = True):
+	def __init__(self, myid, port, host = "127.0.0.1", debug = False, autostart = True):
+		self.debug = debug
+
 		self.host = host
-		self.listening_port = int(port)
+		try:
+			self.listening_port = int(port)
+		except ValueError:
+			self._debug("Invalid port number. letting OS pick a port number")
+			self.listening_port = 0
+
 		self.my_id = myid
 
 		self.peers = {}
 		self.handlers = {}
 		self.threads = []
-
-		self.debug = debug
 
 		self.listening_thread = PeerListenerThread(target = self.listen_for_connections)
 
@@ -22,7 +27,7 @@ class Peer(object):
 
 	def start_listening(self):
 		self.serversocket = self.make_server_socket()
-		self._debug('Server started on %s:%d' % (self.host, self.listening_port))
+		self._debug('Server started on %s:%d' % self.serversocket.getsockname())
 
 		self.listening_thread.start()
 
@@ -38,11 +43,8 @@ class Peer(object):
 
 	def shutdown(self):
 		self.listening_thread.kill = True
-		# print("killed")
-		# print(self.listening_thread.is_alive())
 		if self.listening_thread.is_alive():
 			self.listening_thread.join()
-		# print("killed again")
 		[thread.join() for thread in self.threads if thread is not None or thread.is_alive()]
 		
 		self.serversocket.close()
@@ -64,7 +66,7 @@ class Peer(object):
 			originator = self.my_id
 
 		try: 
-			connection = PeerConnection(host, port, self.debug)
+			connection = PeerConnection(host, port, debug = self.debug)
 			connection.send_data(self.build_json(msg_type, msg, originator, time))
 			connection.close()
 		except:
@@ -82,7 +84,7 @@ class Peer(object):
 
 	def __handle_connections(self, clientsock, client_addr):
 		host, port = client_addr
-		connection = PeerConnection(host, port, self.debug, clientsock)
+		connection = PeerConnection(host, port, clientsock,  self.debug)
 
 		data = connection.recv_data()
 		msg_type, msg, originator, time = self.extract_json(data)
@@ -96,7 +98,6 @@ class Peer(object):
 		return (json_data['msg_type'], json_data['msg'], json_data['originator'], json_data['time'])
 
 	def build_json(self, msg_type, msg, originator, time_recvd):
-		# print(time)
 		if time_recvd:
 			return json.dumps({'msg_type':msg_type, 'msg': msg, 'originator': originator, 'time': time_recvd})
 		return json.dumps({'msg_type':msg_type, 'msg': msg, 'originator': originator, 'time': time.ctime()})
@@ -111,6 +112,12 @@ class Peer(object):
 
 	def get_peers(self):
 		return self.peers.items()
+
+	def find_peer(self, peerid):
+		try:
+			return self.peers[peerid]
+		except:
+			raise ValueError('Peer is not in list of peers')
 
 	def add_handler(self, msg_type, handler):
 		self.handlers[msg_type] = handler

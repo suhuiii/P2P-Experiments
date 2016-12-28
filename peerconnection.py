@@ -2,7 +2,7 @@ import json, sys
 from socket import *
 
 class PeerConnection(object):
-	def __init__(self, host, port, debug = False, sock = None):
+	def __init__(self, host, port, sock = None, debug = False, ):
 		self.debug = debug
 		self.host = host
 		self.port = port
