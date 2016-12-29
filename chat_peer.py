@@ -86,6 +86,8 @@ class Chat_Peer(Peer):
 		self.connect_and_send(host, port, "PONG", self.get_my_addr())
 
 	def join(self, host, port):
+		if not host:
+			host = "127.0.0.1"
 		try:
 			port = int(port)
 			self._send_ping(host, port)

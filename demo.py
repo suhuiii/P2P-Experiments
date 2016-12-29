@@ -1,4 +1,6 @@
 from chat_peer import Chat_Peer
+import time
+
 def example():
 	my_port = input("Port number to listen on: ")
 	name = input("Enter username: ")
@@ -12,6 +14,7 @@ def example():
 	chat = Chat_Peer(port =  my_port, id = name, bootstrap = bootstrap)
 
 	command = ""
+	time.sleep(0.2)
 	print("Chat Peer started..")
 	print("Available commands are: ")
 	print("\tJOIN: connects to a user defined host and port of another chat peer")
